@@ -3,10 +3,12 @@
 export GDAL_DATA=/home/jsaxon/anaconda3/share/gdal/
 
 # Get a CSV with x,y,value from database...
+# This database is just a ton of Census products, for my convenience...
 psql census -A -F"," -o acs.csv --pset footer \
     -c "SELECT ST_X(ST_Transform(centroid, 2163)) x, ST_Y(ST_Transform(centroid, 2163)) y, mhi FROM census_tracts_2015 tr JOIN acsprofile5y2015 pr ON tr.state = pr.state AND tr.county = pr.county AND tr.tract = pr.tract WHERE tr.state < 57 AND tr.state NOT IN (2, 15) AND pr.total_pop > 0;"
 
 # Get a geojson for clipping the extent (gdalwarp, below)
+# Second and third arguments to ST_AsGeoJson are precision (in meters), and directive to include short-form EPSG CRS.
 psql census -t -A -F"," -c "SELECT ST_AsGeoJson(ST_Transform(ST_Union(geom), 2163), 0, 2) FROM states WHERE fips < 57 AND fips NOT IN (2, 15);" -o us.geojson
 
 ## To tune the power and N point params, do some loops.
@@ -18,7 +20,11 @@ psql census -t -A -F"," -c "SELECT ST_AsGeoJson(ST_Transform(ST_Union(geom), 216
 a=0.0
 p=004
 
-## Create the grid. 
+## Create the grid.
+# I'm using 4 nearest neighbors.
+# If power > 0, you get funny "pocks and pimples", near each outlier, 
+#   as it relaxes to the local average.
+# Can also try the other gdal interpolation methods, but I didn't think they looked as good.
 # You could also do this with scipy griddata.
 # which is a bit faster but resulted in missing data.
 # You would still use gdal_grid to convert to tif.
@@ -35,6 +41,7 @@ gdaldem color-relief crop.tiff colors.txt -of PNG color.png
 
 
 # Now just stitch the pieces together using imagemagick
+# This looks a bit better with a luminosity blend, in photoshop, but CL for now.
 composite -compose multiply -blend 60 hillshade.png color.png mhi_terrain.png
 
 # Give myself a bit more room for the legend....
