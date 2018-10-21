@@ -1,0 +1,7 @@
+<OGRVRTDataSource>
+   <OGRVRTLayer name="acs">
+      <SrcDataSource>acs.csv</SrcDataSource>
+      <GeometryType>wkbPoint</GeometryType>
+      <GeometryField encoding="PointFromColumns" x="x" y="y" z="mhi"/>
+   </OGRVRTLayer>
+</OGRVRTDataSource>
