@@ -15,8 +15,8 @@ psql census -t -A -F"," -c "SELECT ST_AsGeoJson(ST_Transform(ST_Union(geom), 216
 a=0.0
 p=004
 
-# gdal_grid -zfield "mhi" -a invdistnn:power=${a}:radius=1000000:max_points=${p}:min_points=2:smoothing=0:nodata=-1 \
-#           -outsize 2000 2000 -of GTiff -ot Float65 -l acs acs.vrt acs.tiff --config GDAL_NUM_THREADS ALL_CPUS
+gdal_grid -zfield "mhi" -a invdistnn:power=${a}:radius=1000000:max_points=${p}:min_points=2:smoothing=0:nodata=-1 \
+          -outsize 2000 2000 -of GTiff -ot Float65 -l acs acs.vrt acs.tiff --config GDAL_NUM_THREADS ALL_CPUS
 
 gdalwarp -s_srs EPSG:2163 -t_srs EPSG:2163 -crop_to_cutline -cutline us.geojson acs.tiff -overwrite crop.tiff
 
